@@ -2,7 +2,8 @@ from analysis import (
     load_raw_data,
     get_dataset_summary,
     get_missing_value_report,
-    get_city_distribution
+    get_city_distribution,
+    get_duplicate_report
 )
 import pandas as pd
 
@@ -80,3 +81,22 @@ df = load_raw_data()
 #         ]
 #     ]
 # )
+
+
+# duplicate_report = get_duplicate_report(df)
+
+# print("\nEXACT DUPLICATES")
+# print(duplicate_report["exact_duplicates"])
+
+# print("\nOUTLET DUPLICATES")
+# print(duplicate_report["outlet_duplicates"])
+
+# print("\nTOP RESTAURANT CHAINS")
+# print(
+#     duplicate_report["top_restaurant_chains"]
+# )
+
+cities = sorted(df["city"].unique())
+
+for city in cities:
+    print(city)

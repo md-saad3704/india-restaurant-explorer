@@ -1,43 +1,62 @@
-# Analytics and data processing functions
+# ==========================================
+# ANALYTICS AND DATA PROCESSING FUNCTIONS
+# ==========================================
 
 import pandas as pd
 
-from config import DATA_PATH
+from config import (
+DATA_PATH,
+PROCESSED_DATA_PATH
+)
 
+# ==========================================
+# DATA LOADING
+# ==========================================
 
 def load_raw_data():
     """
-    Load the raw Zomato dataset from Excel.
-
+    Load raw Zomato dataset.
     Returns:
-        pd.DataFrame: Raw dataset.
+        pd.DataFrame
     """
-    df = pd.read_excel(DATA_PATH)
 
-    return df
+    return pd.read_excel(DATA_PATH)
 
+
+def load_clean_data():
+    """
+Load cleaned dataset.
+    Returns:
+        pd.DataFrame
+    """
+
+    return pd.read_parquet(
+        PROCESSED_DATA_PATH
+    )
+
+
+# ==========================================
+# DATASET AUDIT FUNCTIONS
+# ==========================================
 
 def get_dataset_summary(df):
     """
-    Generate a high-level summary of the dataset.
+    Generate dataset summary.
 
     Args:
-        df (pd.DataFrame): Raw dataset
+        df (pd.DataFrame)
 
     Returns:
-        dict: Dataset summary metrics
+        dict
     """
 
-    summary = {
+    return {
         "total_rows": len(df),
         "total_columns": len(df.columns),
         "total_cities": df["city"].nunique(),
         "unique_restaurant_names": df["name"].nunique()
     }
 
-    return summary
-
-## Missing value Report
 
 def get_missing_value_report(df):
     """
@@ -49,8 +68,7 @@ def get_missing_value_report(df):
     Returns:
         pd.DataFrame
     """
-
-    missing_report = pd.DataFrame({
+    report = pd.DataFrame({
         "column": df.columns,
         "missing_count": df.isnull().sum().values,
         "missing_percentage": (
@@ -58,18 +76,15 @@ def get_missing_value_report(df):
         ).round(2).values
     })
 
-    missing_report = missing_report.sort_values(
+    return report.sort_values(
         by="missing_percentage",
         ascending=False
     )
 
-    return missing_report
-
-##City Distribution
 
 def get_city_distribution(df):
     """
-    Calculate restaurant count per city.
+    Get restaurant count per city.
 
     Args:
         df (pd.DataFrame)
@@ -77,6 +92,9 @@ def get_city_distribution(df):
     Returns:
         pd.DataFrame
     """
+
+    pd.DataFrame
+    
 
     city_distribution = (
         df["city"]
@@ -90,3 +108,54 @@ def get_city_distribution(df):
     ]
 
     return city_distribution
+
+
+# ==========================================
+# DUPLICATE ANALYSIS
+# ==========================================
+
+def get_duplicate_report(df):
+    """
+Analyze duplicate records.
+
+    Args:
+        df (pd.DataFrame)
+
+    Returns:
+        dict
+    """
+
+    exact_duplicates = (
+        df.duplicated()
+        .sum()
+    )
+
+    outlet_duplicates = (
+        df.duplicated(
+            subset=[
+                "name",
+                "city",
+                "area",
+                "address"
+            ]
+        )
+        .sum()
+    )
+
+    top_restaurant_chains = (
+        df["name"]
+        .value_counts()
+        .head(20)
+        .reset_index()
+    )
+
+    top_restaurant_chains.columns = [
+        "restaurant_name",
+        "outlet_count"
+    ]
+
+    return {
+        "exact_duplicates": exact_duplicates,
+        "outlet_duplicates": outlet_duplicates,
+        "top_restaurant_chains": top_restaurant_chains
+}
