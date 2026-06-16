@@ -30,6 +30,7 @@ st.set_page_config(
 def load_data():
     return load_clean_data()
 
+
 df = load_data()
 
 # --------------------------------------------------
@@ -37,6 +38,16 @@ df = load_data()
 # --------------------------------------------------
 
 st.sidebar.title("Zomato Explorer")
+
+selected_page = st.sidebar.radio(
+    "Navigation",
+    [
+        "Overview",
+        "Cuisine Insights",
+        "Locality Analysis",
+        "Restaurant Discovery"
+    ]
+)
 
 cities = sorted(
     df["city"]
@@ -50,65 +61,74 @@ selected_city = st.sidebar.selectbox(
 )
 
 # --------------------------------------------------
-# HEADER
+# DATASET DISCLAIMER
 # --------------------------------------------------
 
-st.title("Zomato India Restaurant Explorer")
+st.info(
+    """
+    Dataset Snapshot: 2019
 
-st.markdown(
-    f"### Exploring Restaurants in {selected_city}"
+    This dashboard analyzes historical Zomato India restaurant data.
+    Restaurant availability, ratings, pricing, and operations may have
+    changed since data collection.
+    """
 )
 
-# --------------------------------------------------
-# KPI SECTION
-# --------------------------------------------------
+# ==================================================
+# OVERVIEW PAGE
+# ==================================================
 
-kpis = get_city_kpis(
-    df,
-    selected_city
-)
+if selected_page == "Overview":
 
-col1, col2, col3, col4, col5 = st.columns(5)
+    st.title("Zomato India Restaurant Explorer")
 
-col1.metric(
-    "Restaurants",
-    f"{kpis['total_restaurants']:,}"
-)
+    st.markdown(
+        f"### Exploring Restaurants in {selected_city}"
+    )
 
-col2.metric(
-    "Avg Rating",
-    kpis["average_rating"]
-)
+    kpis = get_city_kpis(
+        df,
+        selected_city
+    )
 
-col3.metric(
-    "Avg Cost",
-    f"₹{kpis['average_cost']}"
-)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
-col4.metric(
-    "Top Cuisine",
-    kpis["top_cuisine"]
-)
+    col1.metric(
+        "Restaurants",
+        f"{kpis['total_restaurants']:,}"
+    )
 
-col5.metric(
-    "Cuisine Types",
-    kpis["total_cuisines"]
-)
+    col2.metric(
+        "Avg Rating",
+        kpis["average_rating"]
+    )
 
-# --------------------------------------------------
-# CUISINE + LOCALITY DISTRIBUTION
-# --------------------------------------------------
+    col3.metric(
+        "Avg Cost",
+        f"₹{kpis['average_cost']}"
+    )
 
-st.markdown("---")
+    col4.metric(
+        "Top Cuisine",
+        kpis["top_cuisine"]
+    )
 
-col1, col2 = st.columns(
-    [1, 1],
-    gap="large"
-)
+    col5.metric(
+        "Cuisine Types",
+        kpis["total_cuisines"]
+    )
 
-# Top Cuisines
+# ==================================================
+# CUISINE INSIGHTS PAGE
+# ==================================================
 
-with col1:
+elif selected_page == "Cuisine Insights":
+
+    st.title("Cuisine Insights")
+
+    st.markdown(
+        f"### Cuisine Trends in {selected_city}"
+    )
 
     with st.container(border=True):
 
@@ -128,7 +148,7 @@ with col1:
         )
 
         fig.update_layout(
-            height=500,
+            height=600,
             title_x=0.5
         )
 
@@ -137,82 +157,84 @@ with col1:
             use_container_width=True
         )
 
-# Top Areas
+# ==================================================
+# LOCALITY ANALYSIS PAGE
+# ==================================================
 
-with col2:
+elif selected_page == "Locality Analysis":
 
-    with st.container(border=True):
+    st.title("Locality Analysis")
 
-        st.subheader("Top Restaurant Areas")
+    st.markdown(
+        f"### Locality Insights for {selected_city}"
+    )
 
-        top_localities = get_top_localities(
-            df,
-            selected_city
-        )
+    col1, col2 = st.columns(
+        [1, 1],
+        gap="large"
+    )
 
-        fig = px.bar(
-            top_localities,
-            x="restaurant_count",
-            y="area",
-            orientation="h",
-            title=f"Top Restaurant Areas in {selected_city}"
-        )
+    # Top Restaurant Areas
 
-        fig.update_layout(
-            height=500,
-            title_x=0.5
-        )
+    with col1:
 
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
+        with st.container(border=True):
 
-# --------------------------------------------------
-# LOCALITY ANALYTICS
-# --------------------------------------------------
+            st.subheader("Top Restaurant Areas")
 
-st.markdown("---")
+            top_localities = get_top_localities(
+                df,
+                selected_city
+            )
 
-col1, col2 = st.columns(
-    [1, 1],
-    gap="large"
-)
+            fig = px.bar(
+                top_localities,
+                x="restaurant_count",
+                y="area",
+                orientation="h"
+            )
 
-# Highest Rated Areas
+            fig.update_layout(
+                height=500,
+                title_x=0.5
+            )
 
-with col1:
+            st.plotly_chart(
+                fig,
+                use_container_width=True
+            )
 
-    with st.container(border=True):
+    # Highest Rated Areas
 
-        st.subheader("Highest Rated Areas")
+    with col2:
 
-        highest_rated = get_highest_rated_areas(
-            df,
-            selected_city
-        )
+        with st.container(border=True):
 
-        fig = px.bar(
-            highest_rated,
-            x="average_rating",
-            y="area",
-            orientation="h",
-            title=f"Highest Rated Areas in {selected_city}"
-        )
+            st.subheader("Highest Rated Areas")
 
-        fig.update_layout(
-            height=500,
-            title_x=0.5
-        )
+            highest_rated = get_highest_rated_areas(
+                df,
+                selected_city
+            )
 
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
+            fig = px.bar(
+                highest_rated,
+                x="average_rating",
+                y="area",
+                orientation="h"
+            )
 
-# Most Expensive Areas
+            fig.update_layout(
+                height=500,
+                title_x=0.5
+            )
 
-with col2:
+            st.plotly_chart(
+                fig,
+                use_container_width=True
+            )
+
+    st.markdown("")
 
     with st.container(border=True):
 
@@ -227,8 +249,7 @@ with col2:
             locality_costs.head(10),
             x="average_cost",
             y="area",
-            orientation="h",
-            title=f"Most Expensive Areas in {selected_city}"
+            orientation="h"
         )
 
         fig.update_layout(
@@ -241,113 +262,107 @@ with col2:
             use_container_width=True
         )
 
-# --------------------------------------------------
-# HIDDEN GEMS
-# --------------------------------------------------
+# ==================================================
+# RESTAURANT DISCOVERY PAGE
+# ==================================================
 
-st.markdown("---")
+elif selected_page == "Restaurant Discovery":
 
-with st.container(border=True):
+    st.title("Restaurant Discovery")
 
-    st.subheader("Hidden Gems")
-
-    hidden_gems = get_hidden_gems(
-        df,
-        selected_city
+    st.markdown(
+        f"### Discover Restaurants in {selected_city}"
     )
 
-    hidden_gems_display = hidden_gems.rename(
-        columns={
-            "name": "Restaurant",
-            "area": "Area",
-            "cuisine": "Cuisine",
-            "rating": "Rating",
-            "rating_count": "Votes",
-            "cost_for_two": "Cost for Two",
-            "weighted_rating": "Weighted Rating"
-        }
-    )
-
-    st.dataframe(
-        hidden_gems_display,
-        use_container_width=True,
-        hide_index=True
-    )
-
-# --------------------------------------------------
-# RESTAURANT LEADERBOARDS
-# --------------------------------------------------
-
-st.markdown("---")
-
-st.subheader("Restaurant Leaderboards")
-
-col1, col2 = st.columns(
-    [1, 1],
-    gap="large"
-)
-
-# Top Restaurants
-
-with col1:
+    # Hidden Gems
 
     with st.container(border=True):
 
-        st.subheader("Top Restaurants")
+        st.subheader("Hidden Gems")
 
-        top_restaurants = get_top_restaurants(
+        hidden_gems = get_hidden_gems(
             df,
             selected_city
         )
 
-        top_restaurants_display = (
-            top_restaurants.rename(
-                columns={
-                    "name": "Restaurant",
-                    "area": "Area",
-                    "rating": "Rating",
-                    "rating_count": "Votes",
-                    "cost_for_two": "Cost",
-                    "weighted_rating": "Score"
-                }
-            )
+        hidden_gems_display = hidden_gems.rename(
+            columns={
+                "name": "Restaurant",
+                "area": "Area",
+                "cuisine": "Cuisine",
+                "rating": "Rating",
+                "rating_count": "Votes",
+                "cost_for_two": "Cost for Two",
+                "weighted_rating": "Weighted Rating"
+            }
         )
 
         st.dataframe(
-            top_restaurants_display,
+            hidden_gems_display,
             use_container_width=True,
             hide_index=True
         )
 
-# Most Popular Restaurants
+    st.markdown("---")
 
-with col2:
+    col1, col2 = st.columns(
+        [1, 1],
+        gap="large"
+    )
 
-    with st.container(border=True):
+    # Top Restaurants
 
-        st.subheader("Most Popular Restaurants")
+    with col1:
 
-        popular_restaurants = (
-            get_most_popular_restaurants(
+        with st.container(border=True):
+
+            st.subheader("Top Restaurants")
+
+            top_restaurants = get_top_restaurants(
                 df,
                 selected_city
             )
-        )
 
-        popular_restaurants_display = (
-            popular_restaurants.rename(
-                columns={
-                    "name": "Restaurant",
-                    "area": "Area",
-                    "rating": "Rating",
-                    "rating_count": "Votes",
-                    "cost_for_two": "Cost"
-                }
+            st.dataframe(
+                top_restaurants.rename(
+                    columns={
+                        "name": "Restaurant",
+                        "area": "Area",
+                        "rating": "Rating",
+                        "rating_count": "Votes",
+                        "cost_for_two": "Cost",
+                        "weighted_rating": "Score"
+                    }
+                ),
+                use_container_width=True,
+                hide_index=True
             )
-        )
 
-        st.dataframe(
-            popular_restaurants_display,
-            use_container_width=True,
-            hide_index=True
-        )
+    # Most Popular Restaurants
+
+    with col2:
+
+        with st.container(border=True):
+
+            st.subheader("Most Popular Restaurants")
+
+            popular_restaurants = (
+                get_most_popular_restaurants(
+                    df,
+                    selected_city
+                )
+            )
+
+            st.dataframe(
+                popular_restaurants.rename(
+                    columns={
+                        "name": "Restaurant",
+                        "area": "Area",
+                        "rating": "Rating",
+                        "rating_count": "Votes",
+                        "cost_for_two": "Cost"
+                    }
+                ),
+                use_container_width=True,
+                hide_index=True
+            )
