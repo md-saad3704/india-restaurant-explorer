@@ -184,39 +184,39 @@ elif selected_page == "Restaurant Discovery":
     st.markdown(f"### Discover Restaurants in {selected_city}")
 
     # --------------------------------------------------
-# RESTAURANT SEARCH
-# --------------------------------------------------
+    # RESTAURANT SEARCH
+    # --------------------------------------------------
 
-with st.container(border=True):
+    with st.container(border=True):
 
-    st.subheader("Restaurant Search")
+        st.subheader("Restaurant Search")
 
-    search_query = st.text_input("", placeholder="Search restaurants...")
+        search_query = st.text_input("", placeholder="Search restaurants...")
 
-    if search_query:
+        if search_query:
 
-        search_results = search_restaurants(df, selected_city, search_query)
+            search_results = search_restaurants(df, selected_city, search_query)
 
-        if not search_results.empty:
+            if not search_results.empty:
 
-            search_results_display = search_results.rename(
-                columns={
-                    "name": "Restaurant",
-                    "area": "Area",
-                    "cuisine": "Cuisine",
-                    "rating": "Rating",
-                    "rating_count": "Votes",
-                    "cost_for_two": "Cost for Two",
-                }
-            )
+                search_results_display = search_results.rename(
+                    columns={
+                        "name": "Restaurant",
+                        "area": "Area",
+                        "cuisine": "Cuisine",
+                        "rating": "Rating",
+                        "rating_count": "Votes",
+                        "cost_for_two": "Cost for Two",
+                    }
+                )
 
-            st.dataframe(
-                search_results_display, use_container_width=True, hide_index=True
-            )
+                st.dataframe(
+                    search_results_display, use_container_width=True, hide_index=True
+                )
 
-        else:
+            else:
 
-            st.warning("No restaurants found.")
+                st.warning("No restaurants found.")
 
     # Hidden Gems
 
