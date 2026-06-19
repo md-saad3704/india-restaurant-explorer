@@ -38,11 +38,7 @@ PRIMARY_COLOR = "#00D4FF"
 # ==================================================
 
 DATASET_DISCLAIMER = """
-Dataset Snapshot: 2019
-
-This dashboard analyzes historical Zomato India restaurant data.
-Restaurant availability, ratings, pricing, and operations may have
-changed since data collection.
+"🔴 Historical Dataset (2019) — Verify restaurant status before visiting."
 """
 
 # ==================================================
@@ -307,6 +303,10 @@ div[data-testid="stVerticalBlockBorderWrapper"]:hover {
 
     background: rgba(0,212,255,0.50);
 }
+
+
+
+
 
 
 

@@ -50,7 +50,41 @@ df = load_data()
 # SIDEBAR
 # --------------------------------------------------
 
-st.sidebar.title("Zomato Explorer")
+st.sidebar.markdown(
+    """
+    <h1 style="
+        text-align:center;
+        color:#00D4FF;
+        font-family:Orbitron;
+        font-size:28px;
+        text-shadow:
+            0 0 10px rgba(0,212,255,0.6);
+    ">
+        <br>
+        MISSION <br>
+        CONTROL
+    </h1>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.sidebar.markdown("---")
+
+
+st.sidebar.markdown(
+    """
+    <p style="
+        color:#00D4FF;
+        font-family:Orbitron;
+        letter-spacing:2px;
+        font-size:14px;
+    ">
+        NAVIGATION
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 selected_page = st.sidebar.radio(
     "Navigation",
@@ -61,9 +95,43 @@ cities = sorted(df["city"].dropna().unique())
 
 selected_city = st.sidebar.selectbox("Select City", cities)
 
-# --------------------------------------------------
-# DATASET DISCLAIMER
-# --------------------------------------------------
+
+st.sidebar.markdown("---")
+
+st.sidebar.markdown(
+    """
+    <p style="
+        color:#00D4FF;
+        font-family:Orbitron;
+        letter-spacing:2px;
+        font-size:14px;
+    ">
+        MISSION ZONE
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.sidebar.info(f"📡 {selected_city}")
+
+
+st.sidebar.markdown("---")
+
+st.sidebar.markdown(
+    """
+    <p style="
+        color:#00D4FF;
+        font-family:Orbitron;
+        letter-spacing:2px;
+        font-size:14px;
+    ">
+        DATA STATUS
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.sidebar.success("Historical Dataset 2019 Snapshot")
 
 
 # ==================================================
@@ -87,7 +155,7 @@ if selected_page == "Overview":
             ZOMATO INDIA EXPLORER
         </h1>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     st.markdown(
@@ -102,13 +170,19 @@ if selected_page == "Overview":
             Navigating India's Food Galaxy • Mission Zone: {selected_city}
         </p>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
     st.divider()
-    
+
+    # --------------------------------------------------
+    # DATASET DISCLAIMER
+    # --------------------------------------------------
+
     st.info(DATASET_DISCLAIMER)
     
+    
+
     kpis = get_city_kpis(df, selected_city)
 
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -133,7 +207,20 @@ if selected_page == "Overview":
 
         with st.container(border=True):
 
-            st.subheader("Top 5 Cuisines")
+            st.markdown(
+                """
+    <h2 style="
+        color:#00D4FF;
+        font-family:Orbitron;
+        letter-spacing:2px;
+        margin-bottom:15px;
+        text-shadow:0 0 10px rgba(0,212,255,0.4);
+    ">
+        CUISINE INTELLIGENCE
+    </h2>
+    """,
+                unsafe_allow_html=True,
+            )
 
             top_cuisines = get_top_cuisines(df, selected_city, top_n=5)
 
@@ -151,7 +238,20 @@ if selected_page == "Overview":
 
         with st.container(border=True):
 
-            st.subheader("Top 5 Restaurant Areas")
+            st.markdown(
+                """
+    <h2 style="
+        color:#00D4FF;
+        font-family:Orbitron;
+        letter-spacing:2px;
+        margin-bottom:15px;
+        text-shadow:0 0 10px rgba(0,212,255,0.4);
+    ">
+        AREA HEATMAP
+    </h2>
+    """,
+                unsafe_allow_html=True,
+            )
 
             top_areas = get_top_localities(df, selected_city, top_n=5)
 
