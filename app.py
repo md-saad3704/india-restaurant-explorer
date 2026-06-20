@@ -51,7 +51,7 @@ df = load_data()
 
 
 def page_title(title):
-    
+
     st.markdown(
         f"""
         <h1 style="
@@ -82,23 +82,18 @@ def section_title(title, color="#00D4FF"):
     )
 
 
-def render_bar_chart(fig):
+def render_bar_chart(fig, x_label=None, y_label=None):
 
-    fig.update_layout(
-        height=OVERVIEW_CHART_HEIGHT,
-        margin=dict(l=20, r=20, t=20, b=20)
-    )
+    fig.update_layout(height=OVERVIEW_CHART_HEIGHT, margin=dict(l=20, r=20, t=20, b=20))
+    
 
-    fig.update_yaxes(
-        categoryorder="total ascending"
-    )
+    fig.update_yaxes(categoryorder="total ascending", title=y_label)
+
+    fig.update_xaxes(title=x_label)
 
     fig = apply_space_theme(fig)
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def page_subtitle(text):
@@ -113,8 +108,7 @@ def page_subtitle(text):
         """,
         unsafe_allow_html=True,
     )
-    
-    
+
 
 def render_footer():
     st.markdown("---")
@@ -137,6 +131,7 @@ def render_footer():
         """,
         unsafe_allow_html=True,
     )
+
 
 # --------------------------------------------------
 # SIDEBAR
@@ -224,9 +219,8 @@ st.sidebar.markdown(
 )
 
 st.sidebar.success("Historical Dataset 2019 Snapshot")
-    
-    
-    
+
+
 # ==================================================
 # OVERVIEW PAGE
 # ==================================================
@@ -311,7 +305,7 @@ if selected_page == "Overview":
                 top_cuisines, x="restaurant_count", y="cuisine", orientation="h"
             )
 
-            render_bar_chart(fig)
+            render_bar_chart(fig, x_label="Restaurant Count", y_label="Cuisine")
 
     # Top Areas Snapshot
 
@@ -325,7 +319,7 @@ if selected_page == "Overview":
 
             fig = px.bar(top_areas, x="restaurant_count", y="area", orientation="h")
 
-            render_bar_chart(fig)
+            render_bar_chart(fig, x_label="Restaurant Count", y_label="Area")
 
 # ==================================================
 # CUISINE INSIGHTS PAGE
@@ -335,8 +329,6 @@ elif selected_page == "Cuisine Insights":
 
     page_title("CUISINE INSIGHTS")
 
-    
-    
     page_subtitle(f"Culinary distribution analysis for {selected_city}")
 
     with st.container(border=True):
@@ -352,7 +344,7 @@ elif selected_page == "Cuisine Insights":
             orientation="h",
         )
 
-        render_bar_chart(fig)
+        render_bar_chart(fig, x_label="Restaurant Count", y_label="Cuisine")
 
 # ==================================================
 # LOCALITY ANALYSIS PAGE
@@ -380,7 +372,7 @@ elif selected_page == "Locality Analysis":
                 top_localities, x="restaurant_count", y="area", orientation="h"
             )
 
-            render_bar_chart(fig)
+            render_bar_chart(fig, x_label="Restaurant Count", y_label="Area")
 
     # Highest Rated Areas
 
@@ -394,8 +386,7 @@ elif selected_page == "Locality Analysis":
 
             fig = px.bar(highest_rated, x="average_rating", y="area", orientation="h")
 
-            render_bar_chart(fig)
-
+            render_bar_chart(fig, x_label="Average Rating", y_label="Area")
     st.markdown("")
 
     with st.container(border=True):
@@ -408,7 +399,7 @@ elif selected_page == "Locality Analysis":
             locality_costs.head(10), x="average_cost", y="area", orientation="h"
         )
 
-        render_bar_chart(fig)
+        render_bar_chart(fig, x_label="Average Cost for Two (₹)", y_label="Area")
 
 # ==================================================
 # RESTAURANT DISCOVERY PAGE
