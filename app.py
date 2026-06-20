@@ -12,16 +12,27 @@ from styles import (
 )
 
 from analysis import (
+    # Data Loading
     load_clean_data,
+    # City Analytics
     get_city_kpis,
     get_top_cuisines,
     get_top_localities,
     get_highest_rated_areas,
     get_locality_cost_analysis,
+    # Restaurant Discovery
     get_hidden_gems,
     get_top_restaurants,
     get_most_popular_restaurants,
     search_restaurants,
+    # Area Intelligence
+    get_city_areas,
+    get_area_kpis,
+    get_area_top_cuisines,
+    get_area_hidden_gems,
+    get_area_top_restaurants,
+    get_area_most_popular_restaurants,
+    search_area_restaurants,
 )
 
 # --------------------------------------------------
@@ -51,13 +62,14 @@ df = load_data()
 
 
 def page_title(title):
-
     st.markdown(
         f"""
         <h1 style="
             color:#00D4FF;
             font-family:Orbitron;
             letter-spacing:2px;
+            font-size:clamp(28px, 5vw, 52px);
+            word-break:break-word;
         ">
             {title}
         </h1>
@@ -85,7 +97,6 @@ def section_title(title, color="#00D4FF"):
 def render_bar_chart(fig, x_label=None, y_label=None):
 
     fig.update_layout(height=OVERVIEW_CHART_HEIGHT, margin=dict(l=20, r=20, t=20, b=20))
-    
 
     fig.update_yaxes(categoryorder="total ascending", title=y_label)
 
@@ -93,7 +104,7 @@ def render_bar_chart(fig, x_label=None, y_label=None):
 
     fig = apply_space_theme(fig)
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def page_subtitle(text):
@@ -175,12 +186,22 @@ st.sidebar.markdown(
 
 selected_page = st.sidebar.selectbox(
     "MISSION MODULE",
-    ["Overview", "Cuisine Insights", "Locality Analysis", "Restaurant Discovery"],
+    [
+        "Overview",
+        "Cuisine Insights",
+        "Locality Analysis",
+        "Area Intelligence",
+        "Restaurant Discovery",
+    ],
 )
 
 cities = sorted(df["city"].dropna().unique())
 
 selected_city = st.sidebar.selectbox("Select City", cities)
+
+areas = get_city_areas(df, selected_city)
+
+selected_area = st.sidebar.selectbox("Select Area", areas)
 
 
 st.sidebar.markdown("---")
@@ -199,7 +220,7 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
-st.sidebar.info(f"{selected_city}")
+st.sidebar.info(f"{selected_city}\n\n{selected_area}")
 
 
 st.sidebar.markdown("---")
@@ -401,6 +422,166 @@ elif selected_page == "Locality Analysis":
 
         render_bar_chart(fig, x_label="Average Cost for Two (₹)", y_label="Area")
 
+
+# ==================================================
+# AREA INTELLIGENCE PAGE
+# ==================================================
+
+elif selected_page == "Area Intelligence":
+
+    page_title("AREA INTELLIGENCE")
+
+    page_subtitle(f"{selected_area} • {selected_city}")
+
+    area_kpis = get_area_kpis(df, selected_city, selected_area)
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    col1.metric("Restaurants", f"{area_kpis['total_restaurants']:,}")
+
+    col2.metric("Avg Rating", area_kpis["average_rating"])
+
+    col3.metric("Avg Cost", f"₹{area_kpis['average_cost']:,}")
+
+    col4.metric("Top Cuisine", area_kpis["top_cuisine"])
+
+    col5.metric("Cuisine Types", area_kpis["total_cuisines"])
+
+    # ------- Search Bar
+
+    st.markdown("---")
+
+    with st.container(border=True):
+
+        section_title(
+            f"DISCOVER IN {selected_area.upper()}"
+        )
+
+        search_query = st.text_input(
+            "", placeholder=f"Search restaurants in {selected_area}..."
+        )
+
+        if search_query:
+
+            search_results = search_area_restaurants(
+                df, selected_city, selected_area, search_query
+            )
+
+            if not search_results.empty:
+
+                st.dataframe(
+                    search_results.rename(
+                        columns={
+                            "name": "Restaurant",
+                            "area": "Area",
+                            "cuisine": "Cuisine",
+                            "rating": "Rating",
+                            "rating_count": "Votes",
+                            "cost_for_two": "Cost",
+                        }
+                    ),
+                    width="stretch",
+                    hide_index=True,
+                    height=300,
+                )
+
+            else:
+
+                st.warning("No restaurants found.")
+
+    # --------- Area's Cuisine
+
+    st.markdown("---")
+
+    with st.container(border=True):
+
+        section_title("AREA CUISINE PROFILE")
+
+        area_cuisines = get_area_top_cuisines(df, selected_city, selected_area)
+
+        fig = px.bar(area_cuisines, x="restaurant_count", y="cuisine", orientation="h")
+
+        render_bar_chart(fig, x_label="Restaurant Count", y_label="Cuisine")
+
+    st.markdown("---")
+
+    col1, col2 = st.columns(2)
+
+    # --------- Area's top Restaurants
+
+    with col1:
+
+        with st.container(border=True):
+
+            section_title("TOP RESTAURANTS")
+
+            top_restaurants = get_area_top_restaurants(df, selected_city, selected_area)
+
+            st.dataframe(
+                top_restaurants.rename(
+                    columns={
+                        "name": "Restaurant",
+                        "rating": "Rating",
+                        "rating_count": "Votes",
+                        "cost_for_two": "Cost",
+                    }
+                ),
+                width="stretch",
+                hide_index=True,
+                height=450,
+            )
+
+    # --------- Area's most popular Restaurants
+
+    with col2:
+
+        with st.container(border=True):
+
+            section_title("MOST POPULAR")
+
+            popular_restaurants = get_area_most_popular_restaurants(
+                df, selected_city, selected_area
+            )
+
+            st.dataframe(
+                popular_restaurants.rename(
+                    columns={
+                        "name": "Restaurant",
+                        "rating": "Rating",
+                        "rating_count": "Votes",
+                        "cost_for_two": "Cost",
+                    }
+                ),
+                width="stretch",
+                hide_index=True,
+                height=450,
+            )
+
+    # --------- Area's hidden gem
+
+    st.markdown("---")
+
+    with st.container(border=True):
+
+        section_title("AREA'S HIDDEN GEMS", color="#00FF88")
+
+        hidden_gems = get_area_hidden_gems(df, selected_city, selected_area)
+
+        st.dataframe(
+            hidden_gems.rename(
+                columns={
+                    "name": "Restaurant",
+                    "rating": "Rating",
+                    "rating_count": "Votes",
+                    "cost_for_two": "Cost",
+                }
+            ),
+            width="stretch",
+            hide_index=True,
+            height=450,
+        )
+
+
 # ==================================================
 # RESTAURANT DISCOVERY PAGE
 # ==================================================
@@ -442,9 +623,9 @@ elif selected_page == "Restaurant Discovery":
 
                 st.dataframe(
                     search_results_display,
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True,
-                    height=350,
+                    height=450,
                 )
 
             else:
@@ -484,9 +665,7 @@ elif selected_page == "Restaurant Discovery":
             }
         )
 
-        st.dataframe(
-            hidden_gems_display, use_container_width=True, hide_index=True, height=350
-        )
+        st.dataframe(hidden_gems_display, width="stretch", hide_index=True, height=750)
 
     st.markdown("---")
 
@@ -513,9 +692,9 @@ elif selected_page == "Restaurant Discovery":
                         "weighted_rating": "Score",
                     }
                 ),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
-                height=350,
+                height=450,
             )
 
     # Most Popular Restaurants
@@ -538,9 +717,9 @@ elif selected_page == "Restaurant Discovery":
                         "cost_for_two": "Cost",
                     }
                 ),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
-                height=350,
+                height=450,
             )
 
 # ==================================================

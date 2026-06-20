@@ -4,6 +4,7 @@
 
 import pandas as pd
 
+
 from config import (
     DATA_PATH,
     PROCESSED_DATA_PATH,
@@ -408,7 +409,6 @@ def get_hidden_gems(
 
     gems = gems.sort_values(by="weighted_rating", ascending=False)
 
-    RESTAURANT_COLUMNS
 
     gems["weighted_rating"] = gems["weighted_rating"].round(3)
 
@@ -473,8 +473,6 @@ def get_most_popular_restaurants(df, city, top_n=10):
 
     restaurants = city_df.sort_values(by="rating_count", ascending=False)
 
-    RESTAURANT_COLUMNS
-
     return restaurants[RESTAURANT_COLUMNS].head(top_n).reset_index(drop=True)
 
 
@@ -501,8 +499,6 @@ def search_restaurants(df, city, query, top_n=20):
 
     results = city_df[city_df["name"].str.contains(query, case=False, na=False)].copy()
 
-    RESTAURANT_COLUMNS
-
     return (
         results[RESTAURANT_COLUMNS]
         .sort_values(by=["rating_count", "rating"], ascending=[False, False])
@@ -512,5 +508,256 @@ def search_restaurants(df, city, query, top_n=20):
 
 
 
+# ==========================================
+# AREA ANALYSIS
+# ==========================================
+
+def get_city_areas(df, city):
+
+    city_df = get_city_data(df, city)
+
+    area_counts = city_df["area"].value_counts()
+
+    valid_areas = area_counts[
+        area_counts >=20
+    ].index
+
+    return sorted(valid_areas)
+
+# ---------Gets Area's Data  
 
 
+def get_area_data(df, city, area):
+    """
+    Filter dataset for
+    selected city + area.
+    """
+
+    city_df = get_city_data(df, city)
+
+    area_df = city_df[
+        city_df["area"] == area
+    ].copy()
+
+    return area_df
+
+
+# --------- Area's KPI Metrics
+
+def get_area_kpis(df, city, area):
+    """
+    Generate KPI metrics
+    for a selected area.
+    """
+
+    area_df = get_area_data(
+        df,
+        city,
+        area
+    )
+
+    cuisines = extract_cuisines(
+        area_df
+    )
+
+    return {
+        "total_restaurants": len(area_df),
+        "average_rating": round(
+            area_df["rating"].mean(),
+            2
+        ),
+        "average_cost": int(
+            round(
+                area_df["cost_for_two"].mean()
+            )
+        ),
+        "top_cuisine": (
+            cuisines.value_counts().idxmax()
+            if len(cuisines) > 0
+            else "N/A"
+        ),
+        "total_cuisines": cuisines.nunique(),
+    }
+
+
+# --------- Area's top Cuisine 
+
+def get_area_top_cuisines(
+    df,
+    city,
+    area,
+    top_n=10
+):
+    """
+    Top cuisines inside
+    selected area.
+    """
+
+    area_df = get_area_data(
+        df,
+        city,
+        area
+    )
+
+    cuisines = extract_cuisines(
+        area_df
+    )
+
+    result = (
+        cuisines
+        .value_counts()
+        .head(top_n)
+        .reset_index()
+    )
+
+    result.columns = [
+        "cuisine",
+        "restaurant_count"
+    ]
+
+    return result
+
+
+# --------- Area's Hidden gem
+
+def get_area_hidden_gems(
+    df,
+    city,
+    area,
+    min_rating=4.0,
+    max_cost=500,
+    min_votes=MIN_HIDDEN_GEM_VOTES,
+    top_n=10,
+):
+
+    area_df = get_area_data(df, city, area)
+
+    area_average_rating = area_df["rating"].mean()
+
+    gems = area_df[
+        (area_df["rating"] >= min_rating)
+        & (area_df["cost_for_two"] <= max_cost)
+        & (area_df["rating_count"] >= min_votes)
+    ].copy()
+
+    gems["weighted_rating"] = gems.apply(
+        lambda row: calculate_weighted_rating(
+            rating=row["rating"],
+            votes=row["rating_count"],
+            average_rating=area_average_rating,
+            minimum_votes=min_votes,
+        ),
+        axis=1,
+    )
+
+    gems = gems.sort_values(
+        by="weighted_rating",
+        ascending=False,
+    )
+
+    return gems[RESTAURANT_COLUMNS].head(top_n)
+
+
+
+# --------- Area's top restaurant
+
+def get_area_top_restaurants(
+    df,
+    city,
+    area,
+    min_votes=MIN_HIDDEN_GEM_VOTES,
+    top_n=10,
+):
+
+    area_df = get_area_data(df, city, area)
+
+    area_average_rating = area_df["rating"].mean()
+
+    restaurants = area_df[
+        area_df["rating_count"] >= min_votes
+    ].copy()
+
+    restaurants["weighted_rating"] = restaurants.apply(
+        lambda row: calculate_weighted_rating(
+            rating=row["rating"],
+            votes=row["rating_count"],
+            average_rating=area_average_rating,
+            minimum_votes=min_votes,
+        ),
+        axis=1,
+    )
+
+    restaurants = restaurants.sort_values(
+        by="weighted_rating",
+        ascending=False,
+    )
+
+    return restaurants[RESTAURANT_COLUMNS].head(top_n)
+
+
+
+# --------- Area's most popular Restaurants
+
+def get_area_most_popular_restaurants(
+    df,
+    city,
+    area,
+    top_n=10,
+):
+
+    area_df = get_area_data(df, city, area)
+
+    return (
+        area_df
+        .sort_values(
+            by="rating_count",
+            ascending=False
+        )[RESTAURANT_COLUMNS]
+        .head(top_n)
+    )
+    
+    
+    
+#  --------- 
+
+
+
+# ==========================================
+# AREA RESTAURANT SEARCH
+# ==========================================
+
+def search_area_restaurants(
+    df,
+    city,
+    area,
+    query,
+    top_n=20,
+):
+    """
+    Search restaurants within
+    a selected area.
+    """
+
+    area_df = get_area_data(
+        df,
+        city,
+        area
+    )
+
+    results = area_df[
+        area_df["name"].str.contains(
+            query,
+            case=False,
+            na=False
+        )
+    ]
+
+    return (
+        results[RESTAURANT_COLUMNS]
+        .sort_values(
+            by=["rating_count", "rating"],
+            ascending=[False, False]
+        )
+        .head(top_n)
+        .reset_index(drop=True)
+    )

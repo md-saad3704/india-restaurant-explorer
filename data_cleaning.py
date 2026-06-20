@@ -92,6 +92,7 @@ def clean_cost_column(df):
 
     Rules:
         - 0 -> NaN
+        - Remove rows with missing cost
 
     Args:
         df (pd.DataFrame)
@@ -102,10 +103,27 @@ def clean_cost_column(df):
 
     df = df.copy()
 
-    df["cost_for_two"] = (
-        df["cost_for_two"]
-        .replace(0, np.nan)
+    df["cost_for_two"] = pd.to_numeric(
+        df["cost_for_two"],
+        errors="coerce"
     )
+
+    df["cost_for_two"] = df["cost_for_two"].replace(
+        0,
+        np.nan
+    )
+
+    # rows_before = len(df)
+
+    df = df.dropna(
+        subset=["cost_for_two"]
+    )
+
+    # rows_removed = rows_before - len(df)
+
+    # print(
+    #     f"Removed {rows_removed:,} restaurants with missing cost"
+    # )
 
     return df
 
@@ -149,8 +167,6 @@ def clean_text_columns(df):
     Returns:
         pd.DataFrame
     """
-    pd.DataFrame
-
 
     df = df.copy()
 
@@ -224,4 +240,3 @@ def save_processed_data(df):
         PROCESSED_DATA_PATH,
         index=False
     )
-
