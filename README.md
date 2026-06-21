@@ -2,6 +2,11 @@
 
 An interactive multi-city restaurant analytics dashboard built using Python, Pandas, Plotly, and Streamlit.
 
+
+## Live Demo
+
+https://india-food-analytics.streamlit.app/
+
 ## Project Overview
 
 Zomato India Restaurant Explorer is a data analytics and visualization project that transforms raw restaurant data into actionable insights through an interactive dashboard.
