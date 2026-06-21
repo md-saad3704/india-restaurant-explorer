@@ -253,7 +253,7 @@ if selected_page == "Overview":
         <h1 style="
             text-align:center;
             color:#00D4FF;
-            font-size:clamp(32px, 6vw, 52px);
+            font-size:clamp(27px, 6vw, 52px);
             font-family:Orbitron,sans-serif;
             letter-spacing:3px;
             text-shadow:
